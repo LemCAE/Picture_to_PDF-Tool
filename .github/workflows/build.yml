@@ -1,0 +1,37 @@
+name: Build EXE
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pillow
+
+    - name: Build EXE
+      run: |
+        pyinstaller --onefile pic-to-pdf.py
+        mkdir output
+        move dist\pic-to-pdf.exe output\pic-to-pdf.exe
+
+    - name: Upload EXE
+      uses: actions/upload-artifact@v2
+      with:
+        name: pic-to-pdf_exe
+        path: output/pic-to-pdf.exe
