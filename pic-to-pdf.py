@@ -7,7 +7,7 @@ class PDFCreatorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("图片转PDF")
-        self.root.geometry("750x600")
+        self.root.geometry("750x700")
         self.root.configure(bg="#f0f0f0")
         self.directory = ''
         self.files = []
@@ -51,6 +51,11 @@ class PDFCreatorApp:
         Button(self.control_frame, text="删除所选图片", command=self.delete_selected_image, font=("Arial", 10), relief="groove").pack(pady=5)
         Button(self.control_frame, text="清除所有图片", command=self.clear_all_images, font=("Arial", 10), relief="groove").pack(pady=5)
         Button(self.control_frame, text="生成PDF", command=self.generate_pdf, font=("Arial", 10), relief="groove").pack(pady=5)
+
+        # 进度条
+        self.progress_bar = ttk.Progressbar(self.control_frame, orient="horizontal", length=200, mode="determinate")
+        self.progress_bar.pack(pady=10)
+        self.progress_bar['value'] = 0
 
         self.file_listbox.bind('<<ListboxSelect>>', self.on_select)
         self.file_listbox.bind('<B1-Motion>', self.drag)
@@ -150,25 +155,42 @@ class PDFCreatorApp:
             messagebox.showwarning("警告", "未选择保存位置，操作已取消")
             return
 
-        create_pdf(self.files, self.directory, save_path)
+        self.progress_bar['maximum'] = len(self.files)
+        self.progress_bar['value'] = 0
+        self.root.update_idletasks()  # 确保进度条显示出来
+
+        create_pdf(self.files, self.directory, save_path, self.progress_bar)
         opendict = messagebox.askyesno("完成", f"PDF已生成于: {save_path}\n是否打开文件夹？")
-        if opendict == True:
+        if opendict:
             os.startfile(os.path.dirname(save_path))
 
 def get_image_files(directory):
     return [f for f in os.listdir(directory) if f.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif', 'webp'))]
 
-def create_pdf(files, directory, output_path):
+def create_pdf(files, directory, output_path, progress_bar):
     images = []
-    for file in files:
+    for i, file in enumerate(files):
         img_path = os.path.join(directory, file)
-        img = Image.open(img_path)
-        if img.mode == 'RGBA':
-            img = img.convert('RGB')
-        images.append(img)
-    
-    images[0].save(output_path, save_all=True, append_images=images[1:])
-    print(f"PDF已生成: {output_path}")
+        try:
+            img = Image.open(img_path)
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+            images.append(img)
+        except Exception as e:
+            messagebox.showerror("错误", f"无法识别图像文件: {img_path}\n错误: {e}")
+            continue
+
+        # 更新进度条
+        progress_bar['value'] = i + 1
+        progress_bar.update_idletasks()
+
+    if images:
+        images[0].save(output_path, save_all=True, append_images=images[1:])
+        print(f"PDF已生成: {output_path}")
+    else:
+        messagebox.showerror("错误", "没有成功处理的图像，PDF未生成。")
+        print("没有成功处理的图像，PDF未生成。")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
