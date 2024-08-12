@@ -11,7 +11,7 @@ class PDFCreatorApp:
         self.root.configure(bg="#f0f0f0")
         self.directory = ''
         self.files = []
-        self.sort_by = tk.StringVar(value='name')
+        self.sort_by = tk.StringVar(value='按文件名称')
         self.default_filename = "newfile.pdf"
 
         # 文件列表框
@@ -42,7 +42,7 @@ class PDFCreatorApp:
         # 下拉菜单
         self.sort_label = Label(self.control_frame, text="排序方式:", font=("Arial", 10), bg="#f0f0f0")
         self.sort_label.pack(pady=5)
-        self.sort_dropdown = ttk.Combobox(self.control_frame, textvariable=self.sort_by, values=['name', 'time'], state="readonly")
+        self.sort_dropdown = ttk.Combobox(self.control_frame, textvariable=self.sort_by, values=['按文件名称', '按修改时间'], state="readonly")
         self.sort_dropdown.pack(pady=5)
         self.sort_dropdown.bind("<<ComboboxSelected>>", self.sort_files)
 
@@ -71,7 +71,7 @@ class PDFCreatorApp:
 
     def sort_files(self, event=None):
         sort_by = self.sort_by.get()
-        if sort_by == 'time':
+        if sort_by == '按修改时间':
             self.files.sort(key=lambda x: os.path.getmtime(os.path.join(self.directory, x)))
         else:
             self.files.sort()
@@ -151,10 +151,12 @@ class PDFCreatorApp:
             return
 
         create_pdf(self.files, self.directory, save_path)
-        messagebox.showinfo("完成", f"PDF已生成: {save_path}")
+        opendict = messagebox.askyesno("完成", f"PDF已生成于: {save_path}\n是否打开文件夹？")
+        if opendict == True:
+            os.startfile(os.path.dirname(save_path))
 
 def get_image_files(directory):
-    return [f for f in os.listdir(directory) if f.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif'))]
+    return [f for f in os.listdir(directory) if f.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif', 'webp'))]
 
 def create_pdf(files, directory, output_path):
     images = []

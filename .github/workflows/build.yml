@@ -26,7 +26,7 @@ jobs:
 
     - name: Build EXE
       run: |
-        pyinstaller --onefile pic-to-pdf.py
+        pyinstaller --onefile --windowed pic-to-pdf.py
         mkdir output
         move dist\pic-to-pdf.exe output\pic-to-pdf.exe
 
