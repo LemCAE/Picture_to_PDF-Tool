@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+.github
+build
+dist
+
+*.spec
